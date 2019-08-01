@@ -185,7 +185,7 @@ When sending notifications via the `sms` channel, you should define a routeNotif
 
 ## Security
 
-If you discover any security related issues, please email freek@spatie.be instead of using the issue tracker.
+If you discover any security related issues, please email shafimsp@gmail.com instead of using the issue tracker.
 
 
 ## License
