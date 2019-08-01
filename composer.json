@@ -1,0 +1,34 @@
+{
+  "name": "shafimsp/laravel-sms-notification-channel",
+  "description": "Laravel SMS Notification",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Muhammed Shafi",
+      "email": "shafimsp@gmail.com"
+    }
+  ],
+  "type": "library",
+  "require": {
+    "php": "^7.1.3",
+    "illuminate/support": "~5.8.0|^6.0",
+    "illuminate/notifications": "~5.8.0|^6.0",
+    "nexmo/client": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "MSP\\SmsNotificationChannel\\": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Shafimsp\\SmsNotificationChannel\\SmsServiceProvider"
+      ],
+      "aliases": {
+        "Sms": "Shafimsp\\SmsNotificationChannel\\Facades\\Sms"
+      }
+    }
+  },
+  "minimum-stability": "dev"
+}
