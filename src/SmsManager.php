@@ -35,7 +35,7 @@ class SmsManager extends Manager
     {
         return new NexmoDriver(
             $this->createNexmoClient(),
-            $this->app['config']['sms.nexmo.from']
+            $this->app['config']['services.nexmo.sms_from']
         );
     }
 
@@ -48,8 +48,8 @@ class SmsManager extends Manager
     {
         return new NexmoClient(
             new NexmoBasicCredentials(
-                $this->app['config']['sms.nexmo.key'],
-                $this->app['config']['sms.nexmo.secret']
+                $this->app['config']['services.nexmo.key'],
+                $this->app['config']['services.nexmo.secret']
             )
         );
     }
