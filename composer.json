@@ -17,7 +17,7 @@
   },
   "autoload": {
     "psr-4": {
-      "MSP\\SmsNotificationChannel\\": "src/"
+      "Shafimsp\\SmsNotificationChannel\\": "src/"
     }
   },
   "extra": {
