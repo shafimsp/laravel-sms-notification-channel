@@ -2,6 +2,7 @@
 
 namespace Shafimsp\SmsNotificationChannel;
 
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Notifications\ChannelManager;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\ServiceProvider;
@@ -27,7 +28,8 @@ class SmsServiceProvider extends ServiceProvider
         Notification::resolved(function (ChannelManager $service) {
             $service->extend('sms', function ($app) {
                 return new SmsNotificationChannel(
-                    $this->app->make('sms')
+                    $this->app->make('sms'),
+                    $this->app->make(Dispatcher::class)
                 );
             });
         });

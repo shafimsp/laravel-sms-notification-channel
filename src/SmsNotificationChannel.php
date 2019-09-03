@@ -3,8 +3,12 @@
 namespace Shafimsp\SmsNotificationChannel;
 
 
+use Exception;
+use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Notifications\Events\NotificationFailed;
+use Illuminate\Notifications\Events\NotificationSending;
+use Illuminate\Notifications\Events\NotificationSent;
 use Illuminate\Notifications\Notification;
-use Shafimsp\SmsNotificationChannel\Drivers\Driver;
 
 class SmsNotificationChannel
 {
@@ -15,13 +19,18 @@ class SmsNotificationChannel
      */
     protected $sms;
 
+    /** @var Dispatcher */
+    private $events;
+
     /**
      * SmsNotificationChannel constructor.
      * @param SmsManager $driver
+     * @param Dispatcher $events
      */
-    public function __construct(SmsManager $driver)
+    public function __construct(SmsManager $driver, Dispatcher $events)
     {
         $this->sms = $driver;
+        $this->events = $events;
     }
 
     /**
@@ -43,15 +52,24 @@ class SmsNotificationChannel
             $message = new SmsMessage($message);
         }
 
-//        $message->send();
-        $this->sms
-            ->driver($message->driver)
-            ->to($to)
-            ->content($message->content)
-            ->send();
+        $this->events->dispatch(
+            new NotificationSending($notifiable, $notification, 'sms-'.$message->driver)
+        );
 
-        /*$this->events->fire(
-            new NotificationFailed($notifiable, $notification, 'mobily-ws', $response)
-        );*/
+        try {
+            $response = $this->sms
+                ->driver($message->driver)
+                ->to($to)
+                ->content($message->content)
+                ->send();
+
+            $this->events->dispatch(
+                new NotificationSent($notifiable, $notification, 'sms-'.$message->driver, $response)
+            );
+        } catch (Exception $e) {
+            $this->events->dispatch(
+                new NotificationFailed($notifiable, $notification, 'sms-'.$message->driver, $e)
+            );
+        }
     }
 }
