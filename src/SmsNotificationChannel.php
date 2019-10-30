@@ -52,23 +52,23 @@ class SmsNotificationChannel
             $message = new SmsMessage($message);
         }
 
+        $message->to($to);
+
         $this->events->dispatch(
-            new NotificationSending($notifiable, $notification, 'sms-'.$message->driver)
+            new NotificationSending($notifiable, $notification, 'sms.'.$message->driver)
         );
 
         try {
             $response = $this->sms
                 ->driver($message->driver)
-                ->to($to)
-                ->content($message->content)
-                ->send();
+                ->send($message);
 
             $this->events->dispatch(
-                new NotificationSent($notifiable, $notification, 'sms-'.$message->driver, $response)
+                new NotificationSent($notifiable, $notification, 'sms.'.$message->driver, $response)
             );
         } catch (Exception $e) {
             $this->events->dispatch(
-                new NotificationFailed($notifiable, $notification, 'sms-'.$message->driver, $e)
+                new NotificationFailed($notifiable, $notification, 'sms.'.$message->driver, $e)
             );
         }
     }

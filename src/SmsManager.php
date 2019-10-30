@@ -3,6 +3,7 @@
 namespace Shafimsp\SmsNotificationChannel;
 
 
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Log\LogManager;
 use Illuminate\Support\Manager;
 use Shafimsp\SmsNotificationChannel\Drivers\LogDriver;
@@ -14,6 +15,28 @@ use Psr\Log\LoggerInterface;
 
 class SmsManager extends Manager
 {
+
+    /**
+     * The config instance.
+     *
+     * */
+    protected $config;
+
+    /**
+     * Create a new manager instance.
+     *
+     * @param  \Illuminate\Contracts\Container\Container $container
+     */
+    public function __construct(Container $container)
+    {
+        parent::__construct($container);
+        $this->config = $container['config'];
+
+        if (!isset($this->container)) {
+            $this->container = $container;
+        }
+    }
+
 
     /**
      * Get a driver instance.
@@ -35,7 +58,7 @@ class SmsManager extends Manager
     {
         return new NexmoDriver(
             $this->createNexmoClient(),
-            $this->app['config']['services.nexmo.sms_from']
+            $this->config['services.nexmo.sms_from']
         );
     }
 
@@ -48,8 +71,8 @@ class SmsManager extends Manager
     {
         return new NexmoClient(
             new NexmoBasicCredentials(
-                $this->app['config']['services.nexmo.key'],
-                $this->app['config']['services.nexmo.secret']
+                $this->config['services.nexmo.key'],
+                $this->config['services.nexmo.secret']
             )
         );
     }
@@ -71,10 +94,10 @@ class SmsManager extends Manager
      */
     public function createLogDriver()
     {
-        $logger = $this->app->make(LoggerInterface::class);
+        $logger = $this->container->make(LoggerInterface::class);
 
         if ($logger instanceof LogManager) {
-            $logger = $logger->channel($this->app['config']['sms.log_channel']);
+            $logger = $logger->channel($this->config['sms.log_channel']);
         }
 
         return new LogDriver($logger);
@@ -87,6 +110,6 @@ class SmsManager extends Manager
      */
     public function getDefaultDriver()
     {
-        return $this->app['config']['sms.default'] ?? 'null';
+        return $this->config['sms.default'] ?? 'null';
     }
 }

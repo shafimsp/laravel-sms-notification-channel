@@ -3,6 +3,7 @@
 namespace Shafimsp\SmsNotificationChannel\Drivers;
 
 use Nexmo\Client as NexmoClient;
+use Shafimsp\SmsNotificationChannel\SmsMessage;
 
 class NexmoDriver extends Driver
 {
@@ -36,13 +37,13 @@ class NexmoDriver extends Driver
     /**
      * {@inheritdoc}
      */
-    public function send()
+    public function send(SmsMessage $message)
     {
         return $this->client->message()->send([
-            'type' => 'text',
+            'type' => $message->type,
             'from' => $this->from,
-            'to' => $this->recipient,
-            'text' => trim($this->message)
+            'to' => $message->to,
+            'text' => trim($message->content)
         ]);
     }
 }

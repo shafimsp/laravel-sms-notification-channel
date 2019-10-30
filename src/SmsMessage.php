@@ -2,10 +2,15 @@
 
 namespace Shafimsp\SmsNotificationChannel;
 
-use Illuminate\Support\Facades\Storage;
+use JsonSerializable;
+use Illuminate\Contracts\Support\Jsonable;
+use Illuminate\Contracts\Support\Arrayable;
+use Shafimsp\SmsNotificationChannel\Contracts\SmsMessage as SmsMessageContract;
+use Shafimsp\SmsNotificationChannel\Drivers\Driver;
+use Shafimsp\SmsNotificationChannel\Exceptions\SmsNotificationException;
 use Shafimsp\SmsNotificationChannel\Facades\Sms;
 
-class SmsMessage
+class SmsMessage implements SmsMessageContract, Arrayable, Jsonable, JsonSerializable
 {
     /**
      * The message driver.
@@ -29,11 +34,11 @@ class SmsMessage
     public $from;
 
     /**
-     * The phone number the message should be sent from.
+     * The phone numbers, the message should be sent to.
      *
-     * @var string
+     * @var array
      */
-    public $to;
+    public $to = [];
 
     /**
      * The message type.
@@ -50,6 +55,14 @@ class SmsMessage
     public $clientReference = '';
 
     /**
+     * The extra request params.
+     *
+     * @var array
+     */
+    public $extra = [];
+
+
+    /**
      * Create a new message instance.
      *
      * @param  string  $content
@@ -62,12 +75,13 @@ class SmsMessage
     /**
      * Set the message driver.
      *
-     * @param  string  $diver
+     * @param  string $driver
      * @return $this
      */
-    public function driver($diver)
+    public function via($driver)
     {
-        $this->driver = $diver;
+        $this->driver = $driver;
+
         return $this;
     }
 
@@ -80,6 +94,7 @@ class SmsMessage
     public function content($content)
     {
         $this->content = $content;
+
         return $this;
     }
 
@@ -88,22 +103,25 @@ class SmsMessage
      *
      * @param  string  $from
      * @return $this
+     * @internal
      */
     public function from($from)
     {
         $this->from = $from;
+
         return $this;
     }
 
     /**
-     * Set the phone number the message should be sent to.
+     * Set the phone numbers, the message should be sent to.
      *
-     * @param  string  $to
+     * @param  string|array $to
      * @return $this
      */
     public function to($to)
     {
-        $this->to = $to;
+        $this->to = array_merge($this->to, is_string($to) ? func_get_args() : $to);
+
         return $this;
     }
 
@@ -115,6 +133,7 @@ class SmsMessage
     public function unicode()
     {
         $this->type = 'unicode';
+
         return $this;
     }
 
@@ -127,6 +146,7 @@ class SmsMessage
     public function clientReference($clientReference)
     {
         $this->clientReference = $clientReference;
+
         return $this;
     }
 
@@ -136,6 +156,108 @@ class SmsMessage
      */
     public function send()
     {
-//        Sms::driver($this->driver)->send($this);
+        $this->throwIf(empty($this->to), new SmsNotificationException('Recipients cannot be empty'));
+        $this->throwIf(empty($this->content), new SmsNotificationException('Message text is required'));
+
+        return $this->driver()->send($this);
+    }
+
+    /**
+     * Convert the SmsMessage instance to an array.
+     *
+     * @return array
+     */
+    public function toArray()
+    {
+        return array_merge([
+            'driver' => $this->driver,
+            'content' => $this->content,
+            'from' => $this->from,
+            'to' => $this->to,
+            'type' => $this->type,
+            'client_reference' => $this->clientReference,
+        ], $this->extra);
+    }
+
+    /**
+     * Convert the SmsMessage instance to JSON.
+     *
+     * @param  int $options
+     * @return string
+     *
+     * @throws SmsNotificationException
+     */
+    public function toJson($options = 0)
+    {
+        $json = json_encode($this->jsonSerialize(), $options);
+
+        $this->throwIf(JSON_ERROR_NONE !== json_last_error(), new SmsNotificationException('Error encoding SmsMessage to JSON: ' . json_last_error_msg()));
+
+        return $json;
+    }
+
+    /**
+     * Convert the object into something JSON serializable.
+     *
+     * @return array
+     */
+    public function jsonSerialize()
+    {
+        return $this->toArray();
+    }
+
+    /**
+     * Handle dynamic method calls into the message.
+     *
+     * @param  string $method
+     * @param  array $parameters
+     * @return mixed
+     */
+    public function __call($method, $parameters)
+    {
+        if (count($parameters) > 0) {
+            $this->extra[$method] = count($parameters) == 1 ? $parameters[0] : $parameters;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Handle dynamic setter into the message.
+     *
+     * @param  string $name
+     * @param  $value
+     * @return mixed
+     */
+    public function __set($name, $value)
+    {
+        $this->extra[$name] = $value;
+    }
+
+    /**
+     * Handle dynamic getter for extras in the message.
+     *
+     * @param  string $name
+     * @return mixed
+     */
+    public function __get($name)
+    {
+        return $this->extra[$name] ?? null;
+    }
+
+    private function driver()
+    {
+        if ($this->driver instanceof Driver) {
+            return $this->driver;
+        }
+
+        return Sms::driver($this->driver);
+    }
+
+    private function throwIf($boolean, $exception, $message = '')
+    {
+        if ($boolean) {
+            throw (is_string($exception) ? new $exception($message) : $exception);
+        }
     }
 }

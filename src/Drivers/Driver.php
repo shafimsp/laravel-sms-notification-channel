@@ -2,58 +2,33 @@
 
 namespace Shafimsp\SmsNotificationChannel\Drivers;
 
-use Shafimsp\SmsNotificationChannel\Exceptions\SmsException;
 use Shafimsp\SmsNotificationChannel\SmsMessage;
 
 abstract class Driver
 {
     /**
-     * The recipient of the message.
-     *
-     * @var string
+     * @param SmsMessage $message The message to send.
+     * @return
      */
-    protected $recipient;
-    /**
-     * The message to send.
-     *
-     * @var string
-     */
-    protected $message;
+    abstract public function send(SmsMessage $message);
 
     /**
-     * {@inheritdoc}
+     * @return SmsMessage
      */
-    abstract public function send();
-
-    /**
-     * Set the recipient of the message.
-     *
-     * @param string  $recipient
-     *
-     * @throws \Shafimsp\SmsNotificationChannel\Exceptions\SmsException
-     *
-     * @return $this
-     */
-    public function to(string $recipient)
+    private function newMessage()
     {
-        throw_if(is_null($recipient), SmsException::class, 'Recipients cannot be empty');
-        $this->recipient = $recipient;
-        return $this;
+        return (new SmsMessage())->via($this);
     }
 
     /**
-     * Set the content of the message.
+     * Dynamically call the default driver instance.
      *
-     * @param string  $message
-     *
-     * @throws \Shafimsp\SmsNotificationChannel\Exceptions\SmsException
-     *
-     * @return $this
+     * @param  string $method
+     * @param  array $parameters
+     * @return mixed
      */
-    public function content(string $message)
+    public function __call($method, $parameters)
     {
-        throw_if(empty($message), SmsException::class, 'Message text is required');
-        $this->message = $message;
-        return $this;
+        return $this->newMessage()->$method(...$parameters);
     }
 }

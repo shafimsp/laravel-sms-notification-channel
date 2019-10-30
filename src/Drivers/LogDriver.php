@@ -4,6 +4,7 @@ namespace Shafimsp\SmsNotificationChannel\Drivers;
 
 
 use Psr\Log\LoggerInterface;
+use Shafimsp\SmsNotificationChannel\SmsMessage;
 
 class LogDriver extends Driver
 {
@@ -30,8 +31,9 @@ class LogDriver extends Driver
     /**
      * {@inheritdoc}
      */
-    public function send()
+    public function send(SmsMessage $message)
     {
-        $this->logger->info("SMS: $this->recipient -> ".trim($this->message));
+        $this->logger->info("SMS: ".implode(",", $message->to)." -> ".trim($message->content));
+        return $message;
     }
 }

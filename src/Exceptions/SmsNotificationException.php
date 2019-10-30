@@ -3,7 +3,7 @@ namespace Shafimsp\SmsNotificationChannel\Exceptions;
 
 use Exception;
 
-class SmsException extends Exception
+class SmsNotificationException extends Exception
 {
 
 }

@@ -1,6 +1,13 @@
 {
   "name": "shafimsp/laravel-sms-notification-channel",
-  "description": "Laravel SMS Notification",
+  "description": "Laravel SMS Notification Channel",
+  "keywords": [
+    "laravel",
+    "sms",
+    "notification",
+    "log",
+    "nexmo"
+  ],
   "license": "MIT",
   "authors": [
     {
@@ -13,7 +20,13 @@
     "php": "^7.1.3",
     "illuminate/support": "~5.8.0|^6.0",
     "illuminate/notifications": "~5.8.0|^6.0",
-    "nexmo/client": "^1.0"
+    "illuminate/log": "~5.8.0|^6.0"
+  },
+  "require-dev": {
+    "nexmo/client": "^2.0"
+  },
+  "suggest": {
+    "nexmo/client": "Required to use the nexmo sms notification driver."
   },
   "autoload": {
     "psr-4": {
@@ -30,5 +43,6 @@
       }
     }
   },
-  "minimum-stability": "dev"
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }
